@@ -1,0 +1,26 @@
+version: 1
+formatters:
+  simple:
+    format: '[%(asctime)s][%(levelname)-8s][%(name)s.%(funcName)s] - %(message)s'
+handler:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: simple
+    stream: ext://sys.stdout
+ file:
+    class: logging.handlers.TimeRotatingFileHandler
+    when: D
+    interval: 1
+    level: DEBUG
+    formatter: simple
+    filename: 'log/app-log.log'
+    encoding: utf8
+# external lib
+loggers:
+root:
+  level: DEBUG
+  handlers:
+    - console
+    - file
+disable_existing_loggers: false    
