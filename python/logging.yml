@@ -8,7 +8,7 @@ handlers:
     level: DEBUG
     formatter: simple
     stream: ext://sys.stdout
- file:
+  file:
     class: logging.handlers.TimedRotatingFileHandler
     when: D
     interval: 1
