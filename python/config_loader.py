@@ -11,21 +11,25 @@ from pathlib import Path
 LOGGER = logging.getLogger(__name__)
 
 
-class ConfigReader():
+class ConfigLoader():
     """
-      Configuration Reader
+      Configuration Loader
     """
 
-    logger = LOGGER.getChild('ConfigReader')  # type: logging.Logger
+    logger = LOGGER.getChild('ConfigLoader')  # type: logging.Logger
 
     @staticmethod
-    def load_from_yaml(cls, path: Path, **kargs) -> ConfigReader:
+    def load_from_yaml(cls, path: Path, **kargs) -> 'ConfigLoader':
+        """
+          load from yaml
+        """
+
         assert path.exists()
 
         try:
             import yaml
         except ImportError as e:
-            self.logger.exception('yaml is required module.' e)
+            cls.logger.exception('yaml is required module.', e)
             raise e
 
         with path.open('r', encoding='utf-8') as f:
@@ -86,11 +90,11 @@ class ConfigReader():
 
 if __name__ == '__main__':
 
-    reader = ConfigReader({
+    loader = ConfigLoader({
         'test': {
             'base': 'aaa/bbb',
             'concat': '${test.base}/ccc'
         }
     })
 
-    print(reader.get('test.concat') == 'aaa/bbb/ccc')
+    print(loader.get('test.concat') == 'aaa/bbb/ccc')
