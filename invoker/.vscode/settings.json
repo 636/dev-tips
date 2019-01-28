@@ -1,0 +1,23 @@
+{
+    "files.eol": "\n",
+    "python.pythonPath": "~/.pyenv/versions/invoker/bin/python",
+    "python.linting.pep8Enabled": true,
+    "python.linting.pep8Args": [
+        "--max-line-length",
+        "150"
+    ],
+    "python.formatting.autopep8Args": [
+        "--max-line-length",
+        "150"
+    ],
+    "python.linting.pylintEnabled": false,
+    "files.encoding": "utf8",
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/__pycache__": true
+    }
+}
