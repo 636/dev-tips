@@ -39,7 +39,7 @@ class ConfigLoader():
             return cls(yaml.load(f), **kargs)
 
     def __init__(self, config: dict,
-                 replace_pattern: str='\${(.*)}'):
+                 replace_pattern: str = '\${(.*)}'):
         self.config = config
 
         self.replace_pattern = re.compile(replace_pattern)
@@ -91,9 +91,9 @@ class ConfigLoader():
         return d
 
 
-class Invoker():
+class InvokerContext():
 
-    logger = LOGGER.getChild('Invoker')  # type: Logger
+    logger = LOGGER.getChild('InvokerContext')  # type: Logger
 
     IS_ALREADY_LOADED_LOGGING = False
 
@@ -115,17 +115,25 @@ class Invoker():
                 'initilize logging configuration. end: \n%s', config)
 
     def __init__(self, config_file_list: List[Path],
-                 logging_config_path: Path=None):
+                 logging_config_path: Path = None):
 
         if logging_config_path:
             self.set_logging_config(logging_config_path)
 
-        
         self.injector = None  # type: Injector
 
         # logging default setting.
         self.set_logging_config(logging_config_file)
-        self.injector = Injector()  # type: Injector
+        config_loader = ConfigLoader({})
+        for c_file in config_file_list:
+            cl = ConfigLoader.load_from_yaml(c_file)
+            ConfigLoader.update(config_loader.config, cl.config)
+
+        self.app_config = config_loader
+        self.injector = Injector(modules=self._injector_bind)  # type: Injector
+
+    def _injector_bind(binder: Binder):
+        inder.bind(ConfigLoader, to=self.app_config, scope=singleton)
 
     def invoke(self, func: Callable, args: Tuple, kwargs: Dict) -> any:
 
