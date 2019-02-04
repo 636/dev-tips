@@ -18,8 +18,8 @@ def define_args_parser() -> ArgumentParser:
 
     parser = ArgumentParser(description="invoke specify function with DI")
 
-    parser.add_argument('log_config', help='specify logging.yml path')
-    parser.add_argument('app_config', help='specify configuration.yml path')
+    parser.add_argument('log_config', help='specify logging.yml path', type=Path)
+    parser.add_argument('app_config', help='specify configuration.yml path', type=Path)
     parser.add_argument('invoke_options', help='specify invoke.yml path')
 
     return parser
@@ -39,11 +39,13 @@ def execute():
     _package = '.'.join(qualified_token[:-1])
     _callable = qualified_token[-1]
 
-    _func = importlib.import_module(_callable, package=_module)  # type: Callable
+    LOGGER.info('calleble: %s, package: %s', _callable, _package)
+
+    _func = getattr(importlib.import_module(_package), _callable)  # type: Callable
 
     kwargs = invoke_options.get('args', {})
     try:
-        ret = invoker.invoke(_func, kwargs-kwargs)
+        ret = invoker.invoke(_func, args=[], kwargs=kwargs)
     except Exception as e:
         LOGGER.exception('invoke function internal error.')
         sys.exit(10)

@@ -1,0 +1,4 @@
+aaa:
+  bbb: sample
+test:
+  abc: ${aaa.bbb}/function

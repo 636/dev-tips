@@ -7,7 +7,7 @@ setup(
     version="1.0.0",
     description='',
     pakages=find_packages(),
-    install_requires=["injector==0.14.1", "PyYAML==3.13"],
+    install_requires=["injector==0.14.1", "pyyaml>=4.2b1"],
     extras_require={
         "develop": ["autopep8", "pep8"]
     },

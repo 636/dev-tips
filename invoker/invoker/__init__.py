@@ -2,93 +2,18 @@
 
 import logging
 import logging.config
+import re
 from logging import Logger
 from pathlib import Path
 import yaml
 from typing import Callable, Tuple, Dict, List
-from collections import Mapping
+from collections.abc import Mapping
 import os
 
 from injector import Injector, Binder, singleton
+from .utils import AliasDict
 
 LOGGER = logging.getLogger(__name__)
-
-
-class ConfigLoader():
-    """
-      Configuration Loader
-    """
-
-    logger = LOGGER.getChild('ConfigLoader')  # type: logging.Logger
-
-    @staticmethod
-    def load_from_yaml(cls, path: Path, **kargs) -> 'ConfigLoader':
-        """
-          load from yaml
-        """
-
-        assert path.exists()
-
-        try:
-            import yaml
-        except ImportError as e:
-            cls.logger.exception('yaml is required module.', e)
-            raise e
-
-        with path.open('r', encoding='utf-8') as f:
-            return cls(yaml.load(f), **kargs)
-
-    def __init__(self, config: dict,
-                 replace_pattern: str = '\${(.*)}'):
-        self.config = config
-
-        self.replace_pattern = re.compile(replace_pattern)
-        self.cache = {}
-
-    def replacer(self, match):
-        return self.get(match.group()[2:-1])
-
-    def get(self, keys: str):
-        if keys in self.cache:
-            return self.cache.get(keys)
-
-        keys = keys.split('.')
-        last = keys[-1]
-
-        try:
-            ret = self.__get(self.config, keys)
-            if isinstance(ret, str):
-                ret = self.replace_pattern.sub(self.replacer, ret)
-
-            if last == 'dir':
-                ret = os.path.expanduser(ret)
-
-            if last == 'eval':
-                ret = ast.literal_eval(ret)
-
-            self.cache.setdefault('.'.join(keys), ret)
-            return ret
-        except KeyError:
-            self.logger.error('Not found spec key:%s', keys)
-            return None
-
-    def __get(self, config, keys):
-
-        if len(keys) == 1:
-            return config[keys[0]]
-        else:
-            return self.__get(config[keys[0]], keys[1:])
-
-    @classmethod
-    def update(cls, d, u):
-        for k, v in u.items():
-            if isinstance(v, Mapping):
-                r = cls.update(d.get(k, {}), v)
-                d[k] = r
-            else:
-                d[k] = u[k]
-
-        return d
 
 
 class InvokerContext():
@@ -123,24 +48,23 @@ class InvokerContext():
         self.injector = None  # type: Injector
 
         # logging default setting.
-        self.set_logging_config(logging_config_file)
-        config_loader = ConfigLoader({})
+        config = AliasDict({})
         for c_file in config_file_list:
-            cl = ConfigLoader.load_from_yaml(c_file)
-            ConfigLoader.update(config_loader.config, cl.config)
+            cl = AliasDict.load_from_yaml(c_file)
+            config.update(cl)
 
-        self.app_config = config_loader
-        self.injector = Injector(modules=self._injector_bind)  # type: Injector
+        self.app_config = config
+        self.injector = Injector(modules=[self._injector_bind])  # type: Injector
 
-    def _injector_bind(binder: Binder):
-        inder.bind(ConfigLoader, to=self.app_config, scope=singleton)
+    def _injector_bind(self, binder: Binder):
+        binder.bind(AliasDict, to=self.app_config, scope=singleton)
 
     def invoke(self, func: Callable, args: Tuple, kwargs: Dict) -> any:
 
         self.logger.info('func: %s  args: %s, kwargs: %s', func, args, kwargs)
         try:
             ret = self.injector.call_with_injection(
-                func, args=args, kwargs=kargs)
+                func, args=args, kwargs=kwargs)
             return ret
         except Exception as e:
             self.logger.exception('unexpected error. %s', func)

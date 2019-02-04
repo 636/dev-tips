@@ -1,0 +1,3 @@
+invoke: sample.sample_function
+args:
+  key: test.abc
