@@ -2,6 +2,7 @@
 
 import importlib
 import logging
+import os
 import sys
 from argparse import ArgumentParser
 from pathlib import Path
@@ -39,6 +40,8 @@ def execute():
     _package = '.'.join(qualified_token[:-1])
     _callable = qualified_token[-1]
 
+    LOGGER.info('cwd: %s', os.getcwd())
+    sys.path.append(os.getcwd())
     LOGGER.info('calleble: %s, package: %s', _callable, _package)
 
     _func = getattr(importlib.import_module(_package), _callable)  # type: Callable

@@ -3,6 +3,7 @@ import logging
 from typing import Callable, Generator, List, Union
 
 from keras import backend as K
+from keras.models import Model
 
 LOGGER = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ class KerasTrainer():
               train_loader: DatasetLoader,
               val_loader: DatasetLoader,
               epochs: int,
-              callbacks=[]): [Model, dict]
+              callbacks=[]) -> [Model, dict]:
 
         _train_step, _train_loader = train_loader()
         _val_step, _val_loader = val_loader()
@@ -35,20 +36,20 @@ class KerasTrainer():
         model.summary(print_fn=self.logger.info)
 
         self.logger.info('training start.')
-        history - model.fit_generator(_train_loader,
+        history = model.fit_generator(_train_loader,
                                       _train_step,
                                       epochs,
                                       verbose=1,
                                       callbacks=self.callbacks + callbacks,
                                       validation_data=_val_loader,
-                                      validation_step=_val_step,
-                                      worker=self.worker)
+                                      validation_steps=_val_step,
+                                      workers=self.worker)
         self.logger.info('training end.')
 
         return model, history
 
     @classmethod
-    def apply_multi_gpu_if_available(cls, model_builder: Callable, freeze: Callable=lambda x: x):
+    def apply_multi_gpu_if_available(cls, model_builder: Callable, freeze: Callable = lambda x: x):
         """
 
         # return
